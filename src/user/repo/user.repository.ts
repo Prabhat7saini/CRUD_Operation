@@ -93,7 +93,7 @@ export class UserRepository extends Repository<User> {
             await this.userRepository.update(id, updateUserDto);
 
             
-            const updatedUser = await this.userRepository.findOne({ where: { id } });
+            const updatedUser = await this.findUser({id});
             if (!updatedUser) {
                 throw new Error('Failed to retrieve the updated user');
             }
