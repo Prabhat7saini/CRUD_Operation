@@ -14,7 +14,7 @@ export class loginDto{
 }
 
 export class loginRespone extends ApiResponce{
-    user: User;
-    accessToken: string;
-    refreshToken: string;
+    user?: User;
+    accessToken?: string;
+    refreshToken?: string;
 }

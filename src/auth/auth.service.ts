@@ -11,49 +11,81 @@ export class AuthService {
     constructor(private userRepository: UserRepository, private readonly jwt: JwtService,private readonly config:ConfigService) { }
 
 
-    async Login(res:Response,loginDto: loginDto): Promise<loginRespone> {
-        const { email, password } = loginDto;
-        const user = await this.userRepository.findUser({ email });
+    async Login(res: Response, loginDto: loginDto): Promise<loginRespone> {
+        try {
+            const { email, password } = loginDto;
 
-        if (!user) {
-            throw new Error(`User not found with email: ${loginDto.email}`);
-        }
-        if (! await bcrypt.compare(password, user.password)) {
-            throw new Error('Invalid credentials');
-        }
+            // Find user by email
+            const user = await this.userRepository.findUser({ email });
 
-        delete user.deletedAt;
-        delete user.password;
-        delete user.refreshToken
+            // Check if user exists
+            if (!user) {
+                throw new Error(`User not found with email: ${loginDto.email}`);
+            }
 
-        const accessToken = await this.generateToken({ id: user.id }, '60m');
-        const refreshToken = await this.generateToken({ id: user.id }, "1d");
-        res.cookie('access_token', accessToken, {
-            httpOnly: true,
-            maxAge: 60 * 60 * 1000, 
-        });
+            // Compare passwords
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            if (!isPasswordValid) {
+                throw new Error('Invalid credentials');
+            }
 
-        res.cookie('refresh_token', refreshToken, {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000, 
-        });
+            // Clean up user object
+            delete user.deletedAt;
+            delete user.password;
+            delete user.refreshToken;
 
-        return{
-            user,
-            accessToken,
-            refreshToken,
-            message:"User Login Successfully",
-            statusCode: 200,
-            success:true
+            // Generate tokens
+            const accessToken = await this.generateToken({ id: user.id }, '60m');
+            const refreshToken = await this.generateToken({ id: user.id }, '1d');
 
+            // Set cookies
+            res.cookie('access_token', accessToken, {
+                httpOnly: true,
+                maxAge: 60 * 60 * 1000, // 1 hour
+            });
+
+            res.cookie('refresh_token', refreshToken, {
+                httpOnly: true,
+                maxAge: 24 * 60 * 60 * 1000, // 1 day
+            });
+
+            // Return successful response
+            return {
+                user,
+                accessToken,
+                refreshToken,
+                message: 'User Login Successfully',
+                statusCode: 200,
+                success: true
+            };
+
+        } catch (error) {
+            // Handle errors
+            console.error('Login error:', error.message);
+
+            // Depending on your application's error handling strategy,
+            // you might want to return a standardized error response
+            return {
+                
+                message: error.message || 'An unexpected error occurred',
+                statusCode: 500, // or another appropriate status code
+                success: false
+            };
         }
     }
-
-
     async generateToken(payload: any, expiresIn: string): Promise<string> {
-        return this.jwt.signAsync(payload, {
-            secret: this.config.get<string>("JWT_SECRET"),
-            expiresIn: expiresIn,
-        });
+        try {
+            // Generate the token asynchronously
+            return await this.jwt.signAsync(payload, {
+                secret: this.config.get<string>('JWT_SECRET'),
+                expiresIn: expiresIn,
+            });
+        } catch (error) {
+            // Handle the error (log it, rethrow it, or handle it as needed)
+            console.error('Token generation error:', error.message);
+
+            // Rethrow the error or return a fallback value if appropriate
+            throw new Error('Failed to generate token');
+        }
     }
 }

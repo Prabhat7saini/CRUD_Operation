@@ -85,42 +85,39 @@ export class UserService {
       const id = +req.user.id;
       const user = await this.userRepository.findUser({ id });
 
-    // Check if user exists
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      // Check if user exists
+      if (!user) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+
+      // Perform soft delete by setting deletedAt timestamp
+      user.deletedAt = new Date();
+
+      // Save the updated user
+      await this.userRepository.save(user);
+
+      return {
+        message: 'User successfully deleted',
+        statusCode: 200,
+        success: true,
+      };
+    } catch (error) {
+
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        console.log(error.message, "cehek")
+        throw error;
+      }
+
+
+      console.error('Unexpected error occurred while deleting user:', error.message);
+      throw new InternalServerErrorException('An unexpected error occurred');
     }
+  }
 
-    // Perform soft delete by setting deletedAt timestamp
-    user.deletedAt = new Date();
+  async getUser(id: number): Promise<getUserResponse> {
+    // console.log(id,`id`)
+    const user = await this.userRepository.getUserById(id);
+    return { user, message: `User successfully Fetch`, statusCode: 200, success: true };
 
-    // Save the updated user
-    await this.userRepository.save(user);
-
-    return {
-      message: 'User successfully deleted',
-      statusCode: 200,
-      success: true,
-    };
-  } catch(error) {
-
-    if (error instanceof NotFoundException || error instanceof BadRequestException) {
-      console.log(error.message, "cehek")
-      throw error;
-    }
-
-
-    console.error('Unexpected error occurred while deleting user:', error.message);
-    throw new InternalServerErrorException('An unexpected error occurred');
   }
 }
-
-  async getUser(id: number): Promise < getUserResponse > {
-  // console.log(id,`id`)
-  const user = await this.userRepository.getUserById(id);
-  return { user, message: `User successfully Fetch`, statusCode: 200, success: true };
-
-}
-}
-
-
-
