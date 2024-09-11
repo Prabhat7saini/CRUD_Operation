@@ -14,7 +14,7 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
   @UseGuards(AuthGuard)
-  @Patch(`/:id`)
+  @Patch()
   async UpdateUserDetails(@Req() req: CustomRequest, @Body() userUpdateDto: UpdateUserDto): Promise<UpdateUserResponse> {
     return await this.userService.UpdateUserDetails(req, userUpdateDto)
   }
