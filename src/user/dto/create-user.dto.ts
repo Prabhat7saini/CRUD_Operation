@@ -1,6 +1,9 @@
 import { IsEmail, IsNotEmpty, IsString, IsNumberString } from 'class-validator';
-import { Expose } from 'class-transformer';
 import { ICreateUserDto } from '../interface/user.interface';
+import { User } from '../entities/user.entity';
+import { IsPasswordComplex } from '../../utils/is-password-complex.decorator';
+import { ApiResponce } from 'src/utils/Api_Responce.dto';
+
 
 export class CreateUserDto implements ICreateUserDto {
     @IsString({ message: 'First name must be a string' })
@@ -21,13 +24,13 @@ export class CreateUserDto implements ICreateUserDto {
 
     @IsString({ message: 'Password must be a string' })
     @IsNotEmpty({ message: 'Password is required' })
+    @IsPasswordComplex({ message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 8 characters long' })
     password: string;
 }
 
 
 
-export class ApiResponce {
-    message: string;
-    statusCode: number;
-    success: boolean;
+export class getUserResponse extends ApiResponce {
+    user: User;
+
 }

@@ -1,30 +1,37 @@
-import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, ApiResponce } from './dto/create-user.dto';
+import { CreateUserDto, getUserResponse } from './dto/create-user.dto';
 import { UpdateUserDto, UpdateUserResponse } from './dto/update-user.dto';
-import { IUpdateUserDto } from './interface/user.interface';
-
+import { ApiResponce } from 'src/utils/Api_Responce.dto';
+import { AuthGuard } from 'src/auth/auth.guard'
+import { CustomRequest } from './interface/user.interface';
 @Controller(`/user`)
+
 export class UserController {
-  constructor(private readonly userService: UserService) {}
-@Post(`/create`)
-async createUser(@Body() createUserDto: CreateUserDto): Promise<ApiResponce>{
-  return this.userService.create(createUserDto);
-}
-
-@Patch(`/:id`)
-async UpdateUserDetails(@Param() param:{id:number}, @Body() userUpdateDto: UpdateUserDto):Promise<UpdateUserResponse> { 
-  
-  const {id} = param;
-
-return await this.userService.UpdateUserDetails(id, userUpdateDto)
-
-}
+  constructor(private readonly userService: UserService) { }
+  @Post(`/create`)
+  async createUser(@Body() createUserDto: CreateUserDto): Promise<ApiResponce> {
+    return this.userService.create(createUserDto);
+  }
+  @UseGuards(AuthGuard)
+  @Patch(`/:id`)
+  async UpdateUserDetails(@Req() req: CustomRequest, @Body() userUpdateDto: UpdateUserDto): Promise<UpdateUserResponse> {
+    return await this.userService.UpdateUserDetails(req, userUpdateDto)
+  }
 
 
-@Delete(`/:id/delete`)
-async DeteleUser(@Param() param:{id:number}):Promise<ApiResponce>{
-  const {id}=param;
-  return await this.userService.softDeleteUser(id);
-}
+  @UseGuards(AuthGuard)
+  @Delete(`/delete`)
+  async DeteleUser(@Req() req: CustomRequest): Promise<ApiResponce> {
+
+    return await this.userService.softDeleteUser(req);
+  }
+
+
+
+  @Get(`/:id`)
+  async getUsers(@Param() param: { id: number }): Promise<getUserResponse> {
+    const { id } = param;
+    return this.userService.getUser(id);
+  }
 }

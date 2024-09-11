@@ -1,7 +1,6 @@
 import { IsOptional, IsString, IsNumberString } from 'class-validator';
-import { PartialType } from '@nestjs/mapped-types';
-import { ApiResponce, CreateUserDto } from './create-user.dto';
-import { IUpdateUserDto } from '../interface/user.interface';
+
+import { ApiResponce } from 'src/utils/Api_Responce.dto';
 
 export class UpdateUserDto{
   @IsOptional()
