@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsNumberString } from 'class-validator';
 
-import { ApiResponce } from 'src/utils/Api_Responce.dto';
+import { ApiResponce } from '../../utils/Api_Responce.dto';
 
 export class UpdateUserDto{
   @IsOptional()
@@ -17,5 +17,5 @@ export class UpdateUserDto{
 }
 
 export class UpdateUserResponse extends ApiResponce {
-  user: UpdateUserDto;
+  user?: UpdateUserDto;
 }

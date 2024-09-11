@@ -18,7 +18,7 @@ export class UserService {
 
 
   async create(createUserDto: CreateUserDto): Promise<ApiResponce> {
-    // console.log(`creating`)
+    
     try {
       const email = createUserDto.email;
 
@@ -41,59 +41,59 @@ export class UserService {
       if (error instanceof ConflictException) {
         throw error;
       }
-
-      this.logger.error('Unexpected error occurred while creating user', error.stack);
       throw new InternalServerErrorException('An unexpected error occurred. Please try again later.', error.message);
     }
   }
 
+ 
   async UpdateUserDetails(@Req() req: CustomRequest, updateUserDto: UpdateUserDto): Promise<UpdateUserResponse> {
     try {
-      const id = req.user.id
+      const id = +req.user.id;
 
       if (!id) {
         throw new BadRequestException('Id is required');
       }
-      const updatedUser = await this.userRepository.updateUser(+id, updateUserDto);
+
+      const user = await this.userRepository.findUser({ id });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const updatedUser = await this.userRepository.updateUser(id, updateUserDto);
       const { password: _, ...userWithoutPassword } = updatedUser;
       delete userWithoutPassword.refreshToken;
-      delete userWithoutPassword.deletedAt
-      // console.log(`user with out password${userWithoutPassword}`);
+      delete userWithoutPassword.deletedAt;
+
       return {
         user: userWithoutPassword,
         message: 'User updated successfully',
         statusCode: 200,
         success: true,
       };
-
     } catch (error) {
-      if (error.message.includes('not found')) {
-        throw new NotFoundException(`User  not found`);
-      }
-      else {
-        // console.log(error.message);
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else if (error instanceof BadRequestException) {
+        throw error;
+      } else {
         throw new InternalServerErrorException('An unexpected error occurred while updating the user');
       }
-    }
 
+    }
   }
 
 
-
+ 
   async softDeleteUser(@Req() req: CustomRequest): Promise<ApiResponce> {
     try {
       const id = +req.user.id;
       const user = await this.userRepository.findUser({ id });
 
-      // Check if user exists
       if (!user) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
 
-      // Perform soft delete by setting deletedAt timestamp
       user.deletedAt = new Date();
-
-      // Save the updated user
       await this.userRepository.save(user);
 
       return {
@@ -102,22 +102,45 @@ export class UserService {
         success: true,
       };
     } catch (error) {
-
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
-        console.log(error.message, "cehek")
+      if (error instanceof NotFoundException) {
         throw error;
       }
-
-
-      console.error('Unexpected error occurred while deleting user:', error.message);
-      throw new InternalServerErrorException('An unexpected error occurred');
+      throw new InternalServerErrorException('An unexpected error occurred while deleting the user');
     }
   }
 
   async getUser(id: number): Promise<getUserResponse> {
-    // console.log(id,`id`)
-    const user = await this.userRepository.getUserById(id);
-    return { user, message: `User successfully Fetch`, statusCode: 200, success: true };
+    try {
 
+      const user = await this.userRepository.getUserById(id);
+
+
+      if (!user) {
+        return {
+          user: null,
+          message: `User with id ${id} not found`,
+          statusCode: 404,
+          success: false
+        };
+      }
+
+
+      return {
+        user,
+        message: `User successfully fetched`,
+        statusCode: 200,
+        success: true
+      };
+
+    } catch (error) {
+
+      return {
+        user: null,
+        message: `An error occurred: ${error.message}`,
+        statusCode: 500,
+        success: false
+      };
+    }
   }
+
 }
