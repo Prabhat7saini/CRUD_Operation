@@ -1,11 +1,10 @@
 import { IsEmail, IsNotEmpty, IsString, IsNumberString } from 'class-validator';
-import { ICreateUserDto } from '../interface/user.interface';
 import { User } from '../entities/user.entity';
 import { IsPasswordComplex } from '../../utils/is-password-complex.decorator';
 import { ApiResponce } from 'src/utils/Api_Responce.dto';
 
 
-export class CreateUserDto implements ICreateUserDto {
+export class CreateUserDto {
     @IsString({ message: 'First name must be a string' })
     @IsNotEmpty({ message: 'First name is required' })
     firstName: string;
@@ -31,6 +30,6 @@ export class CreateUserDto implements ICreateUserDto {
 
 
 export class getUserResponse extends ApiResponce {
-    user: User;
+    user?: User;
 
 }

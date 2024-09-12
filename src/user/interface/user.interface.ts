@@ -2,7 +2,7 @@ import { Request } from "express";
 import { JwtPayload } from "src/auth/interface/JwtPayload.interface";
 
 
-export interface ICreateUserDto {
+export interface ICreateUser {
     firstName: string;
     lastName: string;
     age: string;
@@ -12,7 +12,7 @@ export interface ICreateUserDto {
 }
 
 
-export interface IUpdateUserDto{
+export interface IUpdateUser{
     firstName?: string;
     lastName?: string;
     age?: string;
